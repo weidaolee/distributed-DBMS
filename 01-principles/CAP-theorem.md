@@ -1,0 +1,123 @@
+
+# Table of Contents
+
+1.  [分布式环境下的系统属性](#orgdec588a)
+2.  [CAP 的历史与发展](#org529d1d5)
+3.  [分布式 DBMS 对于 CAP 的质疑](#org589a8bc)
+4.  [对 CAP 质疑的回应](#orgabe2085)
+5.  [CAP 过时论](#org0d946cf)
+6.  [CAP 的新进展和 PACELC 理论](#org72eac45)
+
+
+
+<a id="orgdec588a"></a>
+
+# 分布式环境下的系统属性
+
+对于一个分布式系统, 有三个重要的面向:  
+
+-   **Consistency**   
+    如果一个写请求返回成功, 那么之后的读请求都必须读到这个新数据 (无论数据在哪个节点); 如果写请求失败, 那么所有的读请求都不能读到这个数据更新。 CAP 理论中讨论的一致性是从 **读取数据** 的角度出发的, 分类上属于次序一致性, 但对于分布式的 DBMS 而言, 為了支持 transaction 而必须达到更强的 **严格可串行化**, 在论文 [Highly Available Transactions: Virtues and Limitations](https://amplab.cs.berkeley.edu/wp-content/uploads/2013/10/hat-vldb2014.pdf) 这种一致性称為 strong (or strict) one-copy consistency; 在论文 [Spanner: Google’s Globally-Distributed Database](https://perso.telecom-paristech.fr/kuznetso/INF346-2015/papers/spanner.pdf) 中这种一致性被称為 external consistency, 详细的一致性我们会在后续章节讨论。
+-   **Availability**   
+    要求系统必须处于 **100% 可用** 的状态, 对于每个操作请求, 系统都能在 **有限的时间内** 得到 **正确的响应** 。 我们仔细讨论定义中三个重要的关键词: **100% 可用**, **有限的时间内**, 以及 **正确的响应** 。  
+    
+    第一点, **100% 可用**, 既不是 99% 可用, 也不是 99.9% 可用, 这裡指的就是必须完全可用, 不允许不可用的状态出现, 是一个非常理想的模型。  
+    
+    第二点, **有限时间内**, 指的是对于客户端的请求, 系统必须在有限时间内返回结果, **如果超过这个时间则认為系统是处于不可用的状态** 。  
+    
+    第三点, **正确的响应**, 指的是对于客户端的请求, 系统必须返回一个正确的响应。 比如, 当客户端的请求是 &ldquo;转帐&rdquo;, 则正确响应可以是 &ldquo;转帐成功&rdquo; 或是 &ldquo;转帐失败&rdquo;, 不可以是 &ldquo;服务不可达&rdquo; 或是 &ldquo;服务器内部错误&rdquo;。
+-   **Partition Tolerance**   
+    分区指的是在整个分布式系统中因为网络原因或是部份节点故障, 导致系统被分隔成多个单独的部分。 而分区容错性指的是, 即便系统出现了分区, 依然能正常提供服务。
+
+CAP 被提出时仅仅是一个猜想, 这个猜想的描述如下:  
+
+> 对于一个分布式系统, **C: Consistency**, **A: Availability**, **P: Partition Tolerance** 三者无法同时达到, 必须至少放弃其中一个。  
+
+但由于分区容错性(**P**) 在分布式系统中是必须被确保的, 因此 CAP 猜想应该被这样描述:  
+
+> 对于一个分布式系统, 在必须确保 **P: Partition Tolerance** 的前提下, **C: Consistency**, **A: Availability** 两者无法兼得。  
+
+
+<a id="org529d1d5"></a>
+
+# CAP 的历史与发展
+
+CAP 的历史与发展可以分為三个阶段:  
+
+-   CAP 猜想被提出   
+    1998 年 Eric Brewer 于论文 [Cluster-Based Scalable Network Services](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=4f3f39517935ede2c51d4b5e4dce137b5b64cbe7) 首次提出分布式系统的三个重要的面向, 并于 2000 年 7 月的 ACM PODC 会议上提出 CAP 猜想, 即: 对于一个分布式系统, **C: Consistency**, **A: Availability**, **P: Partition Tolerance** 三者无法同时达到, 必须至少放弃其中一个。 CAP 猜想也被称為 Brewer 猜想。
+-   CAP 猜想被证明, 并用于指导分布式系统设计   
+    Seth Gilbert 和 Nancy Lynch 在 2002 年于 [Brewer’s Conjecture and the Feasibility of Consistent, Available, Partition-Tolerant Web](https://learn.fmi.uni-sofia.bg/file.php/331/lectures/lecture_7/BrewersConjecture-SigAct.pdf) 发表了对 CAP 猜想的正式证明, 此后 CAP 猜想升级為定理, 对于分布式系统的设计产生重大影响。
+-   CAP 被重新思考   
+    对于 CAP, 各方持有不同意见。 质疑者认為 CAP 不适用于所有分布式系统, 支持者则选择完善 CAP 定理。
+
+
+<a id="org589a8bc"></a>
+
+# 分布式 DBMS 对于 CAP 的质疑
+
+对于分布式 DBMS, Michael Stonebraker 于 2010 年发表的 [Errors in Database Systems, Eventual Consistency, and the CAP Theorem](https://dsf.berkeley.edu/cs286/papers/errors-cacmblog2010.pdf) 指出, CAP 理论不适合用于指导分布式的 DBMS 系统, 除了 CAP 提及的分区与节点故障外, 还有很多 DBMS 的其他因素造成错误, 比如:  
+
+1.  应用程序错误: 应用程序执行一个或多个不正确的更新。 对于这样的错误, 数据库必须有良好的备份恢复机制, 以允许数据库在任何点上做恢复。
+2.  可重复的 DBMS 错误: DBMS 在处理节点上崩溃。 用副本在处理节点上执行相同的事务将导致备份崩溃。
+3.  不可重复的 DBMS 错误: DBMS 崩溃了, 但副本很可能没问题。
+4.  操作系统错误: 操作系统在一个节点上崩溃。
+5.  本地集群中的硬件故障: 包括内存故障、磁盘故障等。
+6.  本地集群中的网络分区: 局域网失败, 节点不能互相通信。 CAP 系统中的 P 包含这个错误。
+7.  灾难: 本地群集被洪水、地震等毁灭, 群集不再存在。
+8.  将集群连接在一起的 WAN 中的网络故障: WAN 有故障, 集群不能互相通信。
+
+其中 1, 2 的错误可导致 DBMS 的数据状态错误, 此情况透过拥有多个 replica 是无法避免的, 因此无法达到可用性。 而 7 会导致整个集群不存在, 因此也无法达到可用性。 而在 LAN 网路环境下, 由于网路是可靠的, 因此 CAP 皆可满足。 而 WAN 网路环境下有足够的冗于设计, 即便发生分区, 依然可以使用多数节点提供服务, 用算法实现能轻易作到, 因此在此情况下放弃 C 是不明智的。  
+
+
+<a id="orgabe2085"></a>
+
+# 对 CAP 质疑的回应
+
+2012 年, Eric Brewer 在 [CAP Twelve Years Later: How the &ldquo;Rules&rdquo; Have Changed](https://sfu-db.github.io/dbsystems/Papers/CAP-12years.pdf) 对于 CAP 存在的一些争议做澄清。 首先是对于 CAP 的三选二问题的误解, Brewer 强调: 分区事件的发生是罕见的, 而只有在分区已经确实存在的前提下, 同时追求完美的一致性与可用性是不可行的, 系统设计者需要在一致性和可用性之间选择放弃一个。 另一部份, Brewer 也澄清有关一致性上的争议, CAP 的一致性和 ACID 中的一致性是有所区别的, 并且讨论了 CAP, ACID, BASE 之间的关联。 CAP 理论依然正确, 系统设计者应在应考虑 **如何划分区间期间**, **分区期间的操作的实现** 和 **分区后恢复**, 这样才能有助于推进 CAP 定理的发展, 而不是只将讨论停留在质疑上。  
+
+另一方面, 证明 CAP 定理的 Seth Gilbert 和 Nancy Lynch 也在同一年 (2012) 发表了 [Perspectives on the CAP Theorem](https://groups.csail.mit.edu/tds/papers/Gilbert/Brewer2.pdf), 主要也是在回应对 CAP 定理的质疑。 作者首先提出了对于一个系统更广义的三个面向:  
+
+-   **Safety**: 如果一个 algorithm 总是能提供某个保证, 则称 algorithm 具备安全性。 比如 CAP 中的 C, 如果能确保 external consistency, 则该系统具备安全性。
+-   **Liveness**: 无论发生什么情况, 系统都具有一定的存活能力, 则可以认為该系统具有存活性。 比如 CAP 中的 A, 如果能确保 A, 则该系统具备存活性。
+-   **Unreliable**: 许多因素可以导致不可靠, 不只是分区和节点故障, 也包含各种不可预期的其他故障。
+
+作者提出这三个面向是為了定调 CAP 定理的价值: &ldquo;如果一个系统的不可靠的因素无法避免, 就必须在安全性和存活性上取舍。&rdquo; 是可以接受的, 则 CAP 定理是成立的。  
+
+对于服务场景, 文中有以下划分:  
+
+-   trivial services   
+    如果一个服务本身与分布式无关, 则不属于 CAP 定理的范畴, 即便分布式系统有提供此服务。
+-   weakly consistent services   
+    天然适合 CAP 定理的场景, 比如分布式 Web 缓存服务。
+-   simple services   
+    此类服务天然具有顺序发生的语意, 所以由集中的服务器处理分散的请求时, 按发生顺序处理, 状态更新后对应的读响应也会具有顺序性 (写成功后立即能读到), 此类服务属于 CAP 定理的范畴。
+-   complicated services   
+    此类服务的特征是非顺序化, 需要额外的交互和协调工作, 比如 DBMS 的 transaction, 此类服务不属于 CAP 定理的范畴。
+
+除了澄清以外, Brewer, Seth Gilbert 和 Nancy 试图将 CAP 的讨论从 &ldquo;CAP 定理是否正确&rdquo; 导向 &ldquo;CAP 定理如何实施&rdquo;, 并且对于尚未知道如何实施 CAP 定理的服务先排除, 比如 distracted DBMS  
+
+
+<a id="org0d946cf"></a>
+
+# CAP 过时论
+
+2015 年, Martin Kleppmann 发表的论文 [A Critique of the CAP Theorem](https://courses.e-ce.uth.gr/CE623/A_critique_of_the_CAP_theorem.pdf) 对 CAP 进行更细致的比较与分析, 作者认為 CAP 定理是基于 90 年代的系统所提出的过时理论, 它建议将 CAP 归入历史, 不再指导分布式系统的设计。 文中指出: 分布式系统的设计与延时/延迟有关。 在不使操作延迟与网路延迟成比例的情况下, 某些级别的一致性是无法实现的。  
+
+Martin Kleppmann 期望能讨论不同一致性层次对于性能和容错性的影响, 并用更简单、正确和直观的术语来指导分布式系统的设计。  
+
+
+<a id="org72eac45"></a>
+
+# CAP 的新进展和 PACELC 理论
+
+对于 WAN 网路, 分区容错是无法避免的, 但是对于一个 LAN 来说, 网路是可靠的。 在网路可靠的前提下没有分区和分区恢复的问题, 但问题会转化成: 在延迟存在的前提下, 如何保证一致性?  
+2012 年, Daniel J. Abadi 在 [Consistency Tradeoffs in Modern Distributed Database System Design](https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf) 提出了以 PACELC 替代 CAP 定理:  
+
+> 当系统发生分区事件 **P** 时, 应如何在可用性 **A** 和一致性 **C** 之间取舍?  
+> 否则 (else) **E** 系统没有分区事件存在, 应如何在延迟 **L** 和一致性 **C** 之间取舍?  
+
+尽管 Daniel J. Abadi 提出了 PACELC 定理, 但是并没有给出操作方法, 其理论价值在于提出 &ldquo;全面&rdquo; 地指出分布式系统面临的挑战, 这些问题需要更细化的讨论。  
+
+2017 年, Eric Brewer 提出 [Spanner, TrueTime & The CAP Theorem](https://ying-zhang.github.io/time/2017-Spanner-TrueTime-CAP.pdf) 再次挑战了 CAP 理论, Google 的 Spanner 做到了 CAP 三者几乎兼具的水准, 其保证了 5 个 9 的高可用, 而不是 CAP 要求的 100% 可用, 在分区发生时 Spanner 依然会选择 C 放弃 A  
+
