@@ -1,16 +1,16 @@
 
 # Table of Contents
 
-1.  [分布式环境下的系统属性](#orgdec588a)
-2.  [CAP 的历史与发展](#org529d1d5)
-3.  [分布式 DBMS 对于 CAP 的质疑](#org589a8bc)
-4.  [对 CAP 质疑的回应](#orgabe2085)
-5.  [CAP 过时论](#org0d946cf)
-6.  [CAP 的新进展和 PACELC 理论](#org72eac45)
+1.  [分布式环境下的系统属性](#org998ce7e)
+2.  [CAP 的历史与发展](#orge17ed89)
+3.  [分布式 DBMS 对于 CAP 的质疑](#orgd050447)
+4.  [对 CAP 质疑的回应](#orgc6dcbc4)
+5.  [CAP 过时论](#orgeccd94c)
+6.  [CAP 的新进展和 PACELC 理论](#orgcdbe3aa)
 
 
 
-<a id="orgdec588a"></a>
+<a id="org998ce7e"></a>
 
 # 分布式环境下的系统属性
 
@@ -38,7 +38,7 @@ CAP 被提出时仅仅是一个猜想, 这个猜想的描述如下:
 > 对于一个分布式系统, 在必须确保 **P: Partition Tolerance** 的前提下, **C: Consistency**, **A: Availability** 两者无法兼得。  
 
 
-<a id="org529d1d5"></a>
+<a id="orge17ed89"></a>
 
 # CAP 的历史与发展
 
@@ -52,7 +52,7 @@ CAP 的历史与发展可以分為三个阶段:
     对于 CAP, 各方持有不同意见。 质疑者认為 CAP 不适用于所有分布式系统, 支持者则选择完善 CAP 定理。
 
 
-<a id="org589a8bc"></a>
+<a id="orgd050447"></a>
 
 # 分布式 DBMS 对于 CAP 的质疑
 
@@ -70,7 +70,7 @@ CAP 的历史与发展可以分為三个阶段:
 其中 1, 2 的错误可导致 DBMS 的数据状态错误, 此情况透过拥有多个 replica 是无法避免的, 因此无法达到可用性。 而 7 会导致整个集群不存在, 因此也无法达到可用性。 而在 LAN 网路环境下, 由于网路是可靠的, 因此 CAP 皆可满足。 而 WAN 网路环境下有足够的冗于设计, 即便发生分区, 依然可以使用多数节点提供服务, 用算法实现能轻易作到, 因此在此情况下放弃 C 是不明智的。  
 
 
-<a id="orgabe2085"></a>
+<a id="orgc6dcbc4"></a>
 
 # 对 CAP 质疑的回应
 
@@ -98,7 +98,7 @@ CAP 的历史与发展可以分為三个阶段:
 除了澄清以外, Brewer, Seth Gilbert 和 Nancy 试图将 CAP 的讨论从 &ldquo;CAP 定理是否正确&rdquo; 导向 &ldquo;CAP 定理如何实施&rdquo;, 并且对于尚未知道如何实施 CAP 定理的服务先排除, 比如 distracted DBMS  
 
 
-<a id="org0d946cf"></a>
+<a id="orgeccd94c"></a>
 
 # CAP 过时论
 
@@ -107,11 +107,11 @@ CAP 的历史与发展可以分為三个阶段:
 Martin Kleppmann 期望能讨论不同一致性层次对于性能和容错性的影响, 并用更简单、正确和直观的术语来指导分布式系统的设计。  
 
 
-<a id="org72eac45"></a>
+<a id="orgcdbe3aa"></a>
 
 # CAP 的新进展和 PACELC 理论
 
-对于 WAN 网路, 分区容错是无法避免的, 但是对于一个 LAN 来说, 网路是可靠的。 在网路可靠的前提下没有分区和分区恢复的问题, 但问题会转化成: 在延迟存在的前提下, 如何保证一致性?  
+对于 WAN 网路, 分区事件是无法避免的, 但是对于一个 LAN 来说, 网路是可靠的。 在网路可靠的前提下没有分区和分区恢复的问题, 但问题会转化成: 在延迟存在的前提下, 如何保证一致性?  
 2012 年, Daniel J. Abadi 在 [Consistency Tradeoffs in Modern Distributed Database System Design](https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf) 提出了以 PACELC 替代 CAP 定理:  
 
 > 当系统发生分区事件 **P** 时, 应如何在可用性 **A** 和一致性 **C** 之间取舍?  
