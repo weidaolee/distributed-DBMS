@@ -1,25 +1,25 @@
 
 # Table of Contents
 
-1.  [概述](#org41412d1)
-    1.  [设计、实施视角](#org34082c7)
-    2.  [观测的视角](#orgd934975)
-2.  [次序一致性](#org8edcb4b)
-    1.  [线性一致性 (linearizability)](#org0700a05)
-    2.  [顺序一致性 (sequential consistency)](#orgc7ca5d7)
-    3.  [因果一致性 (casual consistency)](#orgddb2c9b)
-    4.  [会话保证 (session guarantees)](#org8513f1b)
+1.  [概述](#org7fbc783)
+    1.  [设计、实施视角](#org5d1bb6f)
+    2.  [观测的视角](#org21b6dbd)
+2.  [次序一致性](#orgb3a7994)
+    1.  [线性一致性 (linearizability)](#orga206061)
+    2.  [顺序一致性 (sequential consistency)](#org014155b)
+    3.  [因果一致性 (casual consistency)](#org2fb2128)
+    4.  [会话保证 (session guarantees)](#org7b4232e)
 
 
 
-<a id="org41412d1"></a>
+<a id="org7fbc783"></a>
 
 # 概述
 
 分布式系统的一致性模型从科研发展来说有两条脉络, 分别代表两种不同的视角, 一种是从系统设计、实施的视角, 另一种是从系统观测的视角。  
 
 
-<a id="org34082c7"></a>
+<a id="org5d1bb6f"></a>
 
 ## 设计、实施视角
 
@@ -32,7 +32,7 @@
 本文会聚焦讨论 **次序一致性**, **共识一致性** 与 **分布式事务一致性** 在后续的章节讨论。  
 
 
-<a id="orgd934975"></a>
+<a id="org21b6dbd"></a>
 
 ## 观测的视角
 
@@ -43,10 +43,10 @@
 -   最终一致性 (eventually consistency)   
     当写请求成功后, 后续读请求可能读到, 也可能读不到, 但要求在指定时间内必须可以读到。 2008 年 Dan Pritchett, Ebay 在 ACM Queue 上发表 [Base: An Acid Alternative](https://queue.acm.org/detail.cfm?id=1394128). 主张在分布式数据库中放宽一致性约束, 求在指定时间之内必须达成一致, 这样的设计能够获得更好的可用性与水平扩展的能力。 从 CAP 定理的描述来说, 是追求可用性的 AP 模型。 BASE 模型的广泛认可, 这点对于提出 CAP 定理的 Brewer 是没预料到的, 当初 Brewer 认為 C 是相对于 A 来说更重要的属性。 另外, 2012 年由 Microsoft 发表的 [Eventually Consistent Transactions](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=56ff564a9529842eb3db5c3b692ef92f03a588f8) 提供了实现最终一致性的理论和实施细节。
 -   强一致性 (strong consistency)   
-    当写请求成功后, 后续读请求能立即被读到。 从实施角度讨论外部一致性, 则外部一致性需要由 **Paxos 协议** 、 **Raft 算法** 保证 **共识一致性**, 并且要求每个写操作的顺序在分布式系统任意节点看到的都是一致的, 这就会要求分布式系统至少在 **次序一致性** 要达到 **线性一致性** 或 **顺序一致性** 的级别。
+    当写请求成功后, 后续读请求能立即被读到。 从实施角度讨论外部一致性, 则外部一致性需要由 **Paxos 协议** 、 **Raft 算法** 保证 **共识一致性**, 并且要求每个写操作的顺序在分布式系统任意节点看到的都是一致的, 这就会要求分布式系统至少在 **次序一致性** 要达到 **线性一致性** 或 **顺序一致性** 的级别。 而对于分布式的 DBMS 而言, 為了支持事务而必须达到更强的 **严格可串行化**, 在论文 [Highly Available Transactions: Virtues and Limitations](https://amplab.cs.berkeley.edu/wp-content/uploads/2013/10/hat-vldb2014.pdf) 这种一致性称為 strong (or strict) one-copy consistency; 在论文 [Spanner: Google’s Globally-Distributed Database](https://perso.telecom-paristech.fr/kuznetso/INF346-2015/papers/spanner.pdf) 中也称為 external consistency 。
 
 
-<a id="org8edcb4b"></a>
+<a id="orgb3a7994"></a>
 
 # 次序一致性
 
@@ -61,7 +61,7 @@ Paolo Viotti 于 2016 年提出的 [Consistency in Non-Transactional Distributed
     对于所有的事件, 不要求达每个事件都可以比较顺序。
 
 
-<a id="org0700a05"></a>
+<a id="orga206061"></a>
 
 ## 线性一致性 (linearizability)
 
@@ -74,7 +74,7 @@ Paolo Viotti 于 2016 年提出的 [Consistency in Non-Transactional Distributed
 从分布式 DBMS 的产品层面看, 主流分布式 DBMS 大多也以实现线性一致性为目标, 在设计之初或演进过程中纷纷引入了全局时钟，比如 Spanner, TiDB, OceanBase, GoldenDB, 和巨杉等。  
 
 
-<a id="orgc7ca5d7"></a>
+<a id="org014155b"></a>
 
 ## 顺序一致性 (sequential consistency)
 
@@ -158,7 +158,7 @@ Paolo Viotti 于 2016 年提出的 [Consistency in Non-Transactional Distributed
 > operations across different sessions: only the real-time ordering of operations invoked by the same process is preserved (as in PRAM consistency).  
 
 
-<a id="orgddb2c9b"></a>
+<a id="org2fb2128"></a>
 
 ## 因果一致性 (casual consistency)
 
@@ -231,7 +231,7 @@ Paolo Viotti 于 2016 年提出的 [Consistency in Non-Transactional Distributed
 > P2 的 R(x)a, W(x)b 操作, 约束了事件必须以 <a, b> 的顺序被看见, 因為 b 是依赖于 a 的, 而 P3 的顺序是 <a, b, c>, P4 的顺序是 <a, c, b>, 不满足 **顺序一致性** 。  
 
 
-<a id="org8513f1b"></a>
+<a id="org7b4232e"></a>
 
 ## 会话保证 (session guarantees)
 
