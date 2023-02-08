@@ -1,20 +1,20 @@
 
 # Table of Contents
 
-1.  [概述](#org0a8deec)
-2.  [Lamport 逻辑时钟 (Lamport Logical Clock)](#org8014af7)
-    1.  [事件的 happened-before 关系](#orge09764c)
-    2.  [Lamport 时钟算法](#org8c15013)
-    3.  [Lamport 时钟算法的局限](#org7e8fda0)
-3.  [向量时钟 (Vector Clock)](#orgd06f279)
-    1.  [向量时钟算法](#org3805c61)
-    2.  [因果一致性的证明](#org21e27ca)
-4.  [混合逻辑时钟 (Hybrid Logical Clock)](#orgdf26e58)
-5.  [References](#orge058c03)
+1.  [概述](#orga72f441)
+2.  [Lamport 逻辑时钟 (Lamport Logical Clock)](#org2ac4d6e)
+    1.  [事件的 happened-before 关系](#orgfa614f7)
+    2.  [Lamport 时钟算法](#orgc56c88a)
+    3.  [Lamport 时钟算法的局限](#orgb08da51)
+3.  [向量时钟 (Vector Clock)](#org9b35238)
+    1.  [向量时钟算法](#org70fda0c)
+    2.  [因果一致性的证明](#org6ddf8f0)
+4.  [混合逻辑时钟 (Hybrid Logical Clock)](#org6ccced5)
+5.  [References](#orgeb6a0ce)
 
 
 
-<a id="org0a8deec"></a>
+<a id="orga72f441"></a>
 
 # 概述
 
@@ -34,7 +34,7 @@
     2014 年, Sandeep S. Kulkarni 等人于 [Logical Physical Clocks](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=cea6a30d755ddc145bc886a9cb733c81c77b6568) 提出了 **混合逻辑时钟 (Hybrid Logical Clock, HLC)**, 其透过结合物理时钟与向量时钟, 来确定所有事件的先后关系, **全序关系** 从而得到保证。
 
 
-<a id="org8014af7"></a>
+<a id="org2ac4d6e"></a>
 
 # Lamport 逻辑时钟 (Lamport Logical Clock)
 
@@ -45,16 +45,16 @@
 3.  对于其他事件, 属于并发事件, 无法确定先后关系。
 
 
-<a id="orge09764c"></a>
+<a id="orgfa614f7"></a>
 
 ## 事件的 happened-before 关系
 
-$a, b, c,... \in S $, $a$ **happened-before** $b$ 记作 $a \rightarrow b$:
+$a, b, c,... \in S$, $a$ **happened-before** $b$ 记作 $a \rightarrow b$:  
 
-1.  $$ a $$, $$ b $$ 属于同一个进程, 且 a 比 b 先发生, 则 $$ a \rightarrow b $$
-2.  $$ a $$, $$ b $$ 属于不同个进程, 但 $$ a $$ 是 &ldquo;发送事件&rdquo;, $$ b $$ 是 &ldquo;接收事件&rdquo;, 则 $$ a \rightarrow b $$
-3.  如果 $$ a \rightarrow b $$ 且 $$ b \rightarrow c $$, 则 $$ a \rightarrow c $$
-4.  如果 $$ a \nrightarrow b $$ 且 $$ b \nrightarrow a $$, 则 $$ a \perp b $$, 称為并发事件
+1.  $a$, $b$ 属于同一个进程, 且 a 比 b 先发生, 则 $a \rightarrow b$
+2.  $a$, $b$ 属于不同个进程, 但 $a$ 是 &ldquo;发送事件&rdquo;, $b$ 是 &ldquo;接收事件&rdquo;, 则 $a \rightarrow b$
+3.  如果 $a \rightarrow b$ 且 $b \rightarrow c$, 则 $a \rightarrow c$
+4.  如果 $a \nrightarrow b$ 且 $b \nrightarrow a$, 则 $a \perp b$, 称為并发事件
 
 比如, 以下情况:  
 ![img](./imgs/lamport-case-01.png)  
@@ -63,7 +63,7 @@ $a, b, c,... \in S $, $a$ **happened-before** $b$ 记作 $a \rightarrow b$:
 > 2.  $$ a \perp f $$, 且 $$ e \perp d $$
 
 
-<a id="org8c15013"></a>
+<a id="orgc56c88a"></a>
 
 ## Lamport 时钟算法
 
@@ -84,7 +84,7 @@ $$ C_{i}(a) < C_{j}(b) \nRightarrow  a \rightarrow b $$
 $$C_{A}(e) < C_{B}(d)$$, 但 $$e \perp d$$  
 
 
-<a id="org7e8fda0"></a>
+<a id="orgb08da51"></a>
 
 ## Lamport 时钟算法的局限
 
@@ -164,14 +164,14 @@ $$C_{A}(e) < C_{B}(d)$$, 但 $$e \perp d$$
 $$ a \rightarrow b \Leftrightarrow C_{i}(a) < C_{j}(b)$$  
 
 
-<a id="orgd06f279"></a>
+<a id="org9b35238"></a>
 
 # 向量时钟 (Vector Clock)
 
 **向量时钟 (Vector Clock)** 是 1988 年由 Colin Fidge 和 Friedemann Mattern 在 Lamport 逻辑时钟基础上提出的。  
 
 
-<a id="org3805c61"></a>
+<a id="org70fda0c"></a>
 
 ## 向量时钟算法
 
@@ -202,7 +202,7 @@ $$ VC_{i} < VC_{j} \Leftrightarrow $$
 $$ VC_{i}(a) < VC_{j}(b) \Leftrightarrow a \rightarrow b $$  
 
 
-<a id="org21e27ca"></a>
+<a id="org6ddf8f0"></a>
 
 ## 因果一致性的证明
 
@@ -219,12 +219,12 @@ $$ a \rightarrow b \Rightarrow VC_{i}(a) < VC_{j}(b) $$ 是显然的, 我们只�
     若 $$ a \rightarrow c $$, $$ d \rightarrow b $$, 根据递移性, $$ a \rightarrow b $$
 
 
-<a id="orgdf26e58"></a>
+<a id="org6ccced5"></a>
 
 # 混合逻辑时钟 (Hybrid Logical Clock)
 
 
-<a id="orge058c03"></a>
+<a id="orgeb6a0ce"></a>
 
 # References
 
