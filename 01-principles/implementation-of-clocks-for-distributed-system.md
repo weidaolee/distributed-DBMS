@@ -49,7 +49,7 @@
 
 ## 事件的 happened-before 关系
 
-$$a, b, c,... \in S $$, $$ a$$ **happened-before** $$b$$ 记作 $$a \rightarrow b$$:  
+$a, b, c,... \in S $, $a$ **happened-before** $b$ 记作 $a \rightarrow b$:
 
 1.  $$ a $$, $$ b $$ 属于同一个进程, 且 a 比 b 先发生, 则 $$ a \rightarrow b $$
 2.  $$ a $$, $$ b $$ 属于不同个进程, 但 $$ a $$ 是 &ldquo;发送事件&rdquo;, $$ b $$ 是 &ldquo;接收事件&rdquo;, 则 $$ a \rightarrow b $$
