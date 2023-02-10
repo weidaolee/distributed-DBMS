@@ -1,20 +1,22 @@
 
 # Table of Contents
 
-1.  [概述](#org9e64999)
-2.  [Lamport 逻辑时钟 (Lamport Logical Clock)](#org1c5d757)
-    1.  [事件的 happened-before 关系](#org7089ed6)
-    2.  [Lamport 时钟算法](#org7a85250)
-    3.  [Lamport 时钟算法的局限](#orgb38b4ed)
-3.  [向量时钟 (Vector Clock)](#org63454f4)
-    1.  [向量时钟算法](#org4050df2)
-    2.  [因果一致性的证明](#orgc55774c)
-4.  [混合逻辑时钟 (Hybrid Logical Clock)](#orga369645)
-5.  [References](#org9228f47)
+1.  [概述](#orgb5a2ff4)
+2.  [Lamport 逻辑时钟 (Lamport Logical Clock)](#org7862b8a)
+    1.  [事件的 happened-before 关系](#orge456f91)
+    2.  [Lamport 时钟算法](#org8872457)
+    3.  [Lamport 时钟的不足](#org115f644)
+3.  [向量时钟 (Vector Clock)](#org62903a8)
+    1.  [向量时钟算法](#orga339dcc)
+    2.  [因果一致性的证明](#org5012ad7)
+    3.  [版本向量 (Version Vector)](#org4578262)
+    4.  [向量时钟的不足](#orgf65ee9b)
+4.  [混合逻辑时钟 (Hybrid Logical Clock)](#orgbd2c1b3)
+5.  [References](#orga53fa37)
 
 
 
-<a id="org9e64999"></a>
+<a id="orgb5a2ff4"></a>
 
 # 概述
 
@@ -27,14 +29,14 @@
 -   **Network Time Protocol (NTP)** 协议  
     David L. Mills 于 1985 年提出了 **Network Time Protocol (NTP)**, 其思想是: 在系统中维护一个高精度的物理时钟, 其他时钟向该时钟进行校准。 虽然 NTP 是可靠的, 但是延迟和误差太高, 后续并没有单独使用 NTP 的系统。
 -   **Lamport 逻辑时钟 (Lamport Logical Clock)**  
-    Leslie Lamport 于 1978 年于 [Time, clocks, and the ordering of events in a distributed system](https://www.eecs.ucf.edu/~lboloni/Teaching/COP5611_2008/slides/clock-lamport.pdf) 最早提出 **逻辑时钟** 的概念。 Lamport 在论文中定义了 **因果模型**, 并且认為他提出的罗即时中算法可以保证 **因果模型** 。 但实际上 Lamport 逻辑时钟不能保证 **因果一致性 (casual consistency)**, 这是因為其他没参与通信的节点无法感知到其他参与通信节点的因果律, 我们后续会证明这一点。
+    Leslie Lamport 于 1978 年于 [Time, clocks, and the ordering of events in a distributed system](https://www.eecs.ucf.edu/~lboloni/Teaching/COP5611_2008/slides/clock-lamport.pdf) 最早提出 **逻辑时钟** 的概念。 Lamport 在论文中定义了 **因果模型**, 并且认為他提出的逻辑时钟算法可以保证 **因果模型** 。 但实际上 Lamport 逻辑时钟不能保证 **因果一致性 (casual consistency)**, 这是因為其他没参与通信的节点无法感知到其他参与通信节点的因果律, 我们后续会证明这一点。
 -   **向量时钟 (Vector Clock)**  
-    **向量时钟 (Vector Clock)** 是基于 **Lamport 逻辑时钟** 提出的修正, 于 1988 年由 Friedemann Mattern 在 [Virtual Time and Global States of Distributed Systems](https://sites.cs.ucsb.edu/~arch/spr07-seminar/papers/VirtTimeGlobStates-89.pdf) 被提出。 其主要的改进在于, **向量时钟** 找到一种能够发布已经被确定的因果关系的方式, 使其他没有参与通信的节点也能感知道。 我们后续会证明 **向量时钟** 能确保 **因果一致性** 。
+    **向量时钟 (Vector Clock)** 是基于 **Lamport 逻辑时钟** 提出的改进, 于 1988 年由 Friedemann Mattern 在 [Virtual Time and Global States of Distributed Systems](https://sites.cs.ucsb.edu/~arch/spr07-seminar/papers/VirtTimeGlobStates-89.pdf) 被提出。 其主要的改进在于, **向量时钟** 找到一种能够发布已经被确定的因果关系的方式, 使其他没有参与通信的节点也能感知道。 我们后续会证明 **向量时钟** 能确保 **因果一致性** 。
 -   **混合逻辑时钟 (Hybrid Logical Clock)**  
     2014 年, Sandeep S. Kulkarni 等人于 [Logical Physical Clocks](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=cea6a30d755ddc145bc886a9cb733c81c77b6568) 提出了 **混合逻辑时钟 (Hybrid Logical Clock, HLC)**, 其透过结合物理时钟与向量时钟, 来确定所有事件的先后关系, **全序关系** 从而得到保证。
 
 
-<a id="org1c5d757"></a>
+<a id="org7862b8a"></a>
 
 # Lamport 逻辑时钟 (Lamport Logical Clock)
 
@@ -45,7 +47,7 @@
 3.  对于其他事件, 属于并发事件, 无法确定先后关系。
 
 
-<a id="org7089ed6"></a>
+<a id="orge456f91"></a>
 
 ## 事件的 happened-before 关系
 
@@ -63,7 +65,7 @@ $a, b, c,... \in S$, $a$ **happened-before** $b$ 记作 $a \rightarrow b$:
 > 2.  $a \perp f$, 且 $e \perp d$
 
 
-<a id="org7a85250"></a>
+<a id="org8872457"></a>
 
 ## Lamport 时钟算法
 
@@ -84,9 +86,9 @@ $C_{i}(a) < C_{j}(b) \nRightarrow  a \rightarrow b$
 $C_{A}(e) < C_{B}(d)$, 但 $e \perp d$  
 
 
-<a id="orgb38b4ed"></a>
+<a id="org115f644"></a>
 
-## Lamport 时钟算法的局限
+## Lamport 时钟的不足
 
 论文中 Lamport 也有提到 $C_{i}(a) < C_{j}(b) \nRightarrow  a \rightarrow b$ 的问题, 而这个问题直接说明 Lamport 逻辑时钟无法满足 **因果一致性** 。  
 我们考虑以下案例, 此案例满足 **因果一致性**:  
@@ -154,7 +156,7 @@ $C_{A}(e) < C_{B}(d)$, 但 $e \perp d$
   </tr>
 </table>
 
- **因果一致性** 要能够保证, 要能保证 $P_{3}$, $P_{4}$ 能够感知到 $P_{1}$, $P_{2}$ 已经建立好的有序关系, 也就是说 **有序关系** 要被跨进程发布才行。  
+ **因果一致性** 要能保证 $P_{3}$, $P_{4}$ 能够感知到 $P_{1}$, $P_{2}$ 已经建立好的有序关系, 也就是说 **有序关系** 要被跨进程发布才行。  
 也就是说要保证 **因果一致性**, 以下两件事情要成立:  
 
 1.  $a \rightarrow b \Rightarrow C_{i}(a) < C_{j}(b)$
@@ -164,14 +166,14 @@ $C_{A}(e) < C_{B}(d)$, 但 $e \perp d$
 $a \rightarrow b \Leftrightarrow C_{i}(a) < C_{j}(b)$  
 
 
-<a id="org63454f4"></a>
+<a id="org62903a8"></a>
 
 # 向量时钟 (Vector Clock)
 
 **向量时钟 (Vector Clock)** 是 1988 年由 Colin Fidge 和 Friedemann Mattern 在 Lamport 逻辑时钟基础上提出的。  
 
 
-<a id="org4050df2"></a>
+<a id="orga339dcc"></a>
 
 ## 向量时钟算法
 
@@ -179,7 +181,7 @@ $a \rightarrow b \Leftrightarrow C_{i}(a) < C_{j}(b)$
 对于每个进程 $P_{i}$, 定义时间向量 $VC_{i}$, 向量维度是 $n$, 同时是进程数。  
 
 1.  初始化时, $VC_{i}$ 全部為零, 即 $VC_{i} = [0,...,0]$
-2.  $P_{i}$ 进程内发生事件时, 该维度的时间值递增, 即 $$ VC_{i}[i] = VC_{i}[i] + 1 $$, (注: 初始化完毕视為一事件)
+2.  $P_{i}$ 进程内发生事件时, 该维度的时间值递增, 即 $VC_{i}[i] = VC_{i}[i] + 1$, (注: 初始化完毕视為一事件)
 3.  $P_{i}$ 进程发送消息给 $P_{j}$ 时, 需要附带 $VC_{i}$
 4.  $P_{j}$ 收到 $P_{i}$ 的消息时, 透过  $VC_{i}$ 更新自己的时间向量 $VC_{j}$, 分為两步骤:  
     1.  对齐, $\forall k \in [1, n]$, 使得 $VC_{j}[k] = max \{ VC_{i}[k], VC_{j}[k]\}$
@@ -202,29 +204,75 @@ $VC_{i} < VC_{j} \Leftrightarrow$
 $VC_{i}(a) < VC_{j}(b) \Leftrightarrow a \rightarrow b$  
 
 
-<a id="orgc55774c"></a>
+<a id="org5012ad7"></a>
 
 ## 因果一致性的证明
 
 $a \rightarrow b \Rightarrow VC_{i}(a) < VC_{j}(b)$ 是显然的, 我们只需讨论 $VC_{i}(a) < VC_{j}(b) \Rightarrow a \rightarrow b$:  
 
-1.  $a$, $b$ 属于相同进程, 则 $a \rightarrow b$ 是显然的
-2.  $a$, $b$ 属于不同进程, $a$ 為发送事件, $b$ 為接收事件, 则 $a \rightarrow b$ 是显然的
+-   $a$, $b$ 属于相同进程, 则 $a \rightarrow b$ 是显然的
+-   $a$, $b$ 属于不同进程, 比如 $P_{a}$, $P_{b}$
 
-需要讨论的情况是, $a$, $b$ 属于不同进程, 且至少其中一个不為通信事件:  
+由于, $VC_{a}(a) < VC_{b}(b)$, 所以必然在 $a$ 且不晚于 $b$ 的时间, $P_{a}$ 发送消息给 $P_{b}$ (否则 $P_{b}$ 即时更新 $P_{a}$ 的时钟, 就无法保证 $VC_{a}(a) < VC_{b}(b)$)。  
+![img](./imgs/vector-clock-proof-01.jpg)  
 
-1.  其中之一是通信事件, 不失一般性假设 $a$ 不為通信事件, 则存在事件 $c$ 与 $b$ 发生通信  
-    若 $a \rightarrow c$, 由于 $c \rightarrow b$, 根据递移性, $a \rightarrow b$
-2.  两者接不為通信事件, 则存在 则存在事件 $c$, $d$ 发生通信, 不失一般性假设 $c$ 為发送事件, $d$ 為接收事件  
-    若 $a \rightarrow c$, $d \rightarrow b$, 根据递移性, $a \rightarrow b$
+可以分為以下四种情况:  
+![img](./imgs/vector-clock-proof-02.jpg)  
+
+1.  $a$, $b$ 皆為通信事件, 即 $a = c$, $d = b$。根据定义 $a \rightarrow b$。
+2.  $a$ 為通信事件, $b$ 不為通信事件, 即 $a = c$, 但 $d \ne b$。 根据定义, $a \rightarrow d$, 且 $d \rightarrow b$, 又根据传递性, 因此 $a \rightarrow b$。
+3.  $a$ 不為通信事件, $b$ 為通信事件, 即 $a \ne c$, 但 $d = b$。 根据定义, $a \rightarrow c$, 且 $c \rightarrow b$, 又根据传递性, 因此 $a \rightarrow b$。
+4.  $a$, $b$ 皆不為通信事件, 即 $a \ne c$, 且 $d \ne b$。 根据定义和传递性, $a \rightarrow c \rightarrow d \rightarrow b$, 因此 $a \rightarrow b$。
 
 
-<a id="orga369645"></a>
+<a id="org4578262"></a>
+
+## 版本向量 (Version Vector)
+
+**版本向量 (Version Vector)** 是 **向量时钟 (Vector Clock)** 的改进, 延伸阅读请参考:  
+
+-   2004 年 [Bounded Version Vectors](http://pdplab.it.uom.gr/teaching/distrubutedSite/eceutexas/dist2/papers/bvvmain.pdf)
+-   2010 年 [Dotted Version Vectors: Logical Clocks for Optimistic Replication](https://asc.di.fct.unl.pt/~nmp/pubs/tr-corr-2010.pdf)
+
+在向量时钟算法裡, 接收方 $P_{j}$ 会透过发送方 $P_{i}$ 的时间向量 $VC_{i}$ 来对齐自己的时间向量 $VC_{j}$, 但版本向量有以下改变:  
+
+-   **对齐** 是双向的, 也就是只要通信发生彼此的时间向量都会对齐。
+-   **对齐** 后不再自增, 只有更新数据才会自增。
+
+版本向量的算法如下:  
+
+1.  初始化时, $VC_{i}$ 全部為零, 即 $VC_{i} = [0,...,0]$
+2.  $P_{i}$ 进程更新数据时, 该维度的时间值递增, 即 $VC_{i}[i] = VC_{i}[i] + 1$, 这种操作称為 **update** 操作。
+3.  $P_{i}$ 进程发送消息给 $P_{j}$ 时, $VC_{i} = VC_{j} = max \{VC_{i}[k], VC_{j}[k]\}, \forall k \in [1, n]$, 这种操作称為 **sync** 操作。
+
+参考以下例子, 其中:  
+
+-   **update** 事件為红色
+-   **sync** 事件為蓝色和灰色
+
+![img](./imgs/version-vector.jpg)  
+
+由于版本向量将 **update** 事件与 **sync** 事件解耦, 故障、分区发生时依然能够进行读写; 而在故障、分区恢复后能够更有效的检测冲突事件, 这个方案在 Microsoft 的 Dynamo 得到采用。  
+
+
+<a id="orgf65ee9b"></a>
+
+## 向量时钟的不足
+
+向量时钟的不足体现在:  
+
+-   节点数量是固定的, 无法动态增加、撤销节点。
+-   假设节点数為 $N$, 则维持 **因果性 casuality** 的成本以及通信的复杂度是 $O(N)$。
+
+
+<a id="orgbd2c1b3"></a>
 
 # 混合逻辑时钟 (Hybrid Logical Clock)
 
+*to be completed&#x2026;*  
 
-<a id="org9228f47"></a>
+
+<a id="orga53fa37"></a>
 
 # References
 
